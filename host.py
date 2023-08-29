@@ -17,7 +17,7 @@ def main():
     listen_ip = "127.0.0.1"  # Endereço IP para escutar conexões
     listen_port = 3030  # Porta para escutar conexões
 
-    user_name = input("Digite seu nome de usuário: ")  # Solicita nome de usuário
+    user_name = input("Digite seu nome de usuário: ")  
 
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Cria socket IPv4 e TCP
     client_socket.bind((listen_ip, listen_port))  # Associa o socket ao IP e porta

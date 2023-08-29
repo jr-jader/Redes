@@ -14,10 +14,10 @@ def receive_messages(client_socket, remote_user_name):
             break
 
 def main():
-    user_name = input("Digite seu nome de usuário: ")  # Solicita nome de usuário
-    remote_ip = input("Digite o IP do host: ")  # Solicita IP do host remoto
-    remote_port = int(input("Digite a porta do host: "))  # Solicita porta do host remoto
-
+    user_name = input("Digite seu nome de usuário: ")  
+    remote_ip = input("Digite o IP do host: ")  
+    remote_port = int(input("Digite a porta do host: "))  
+    
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Cria socket IPv4 e TCP
     client_socket.connect((remote_ip, remote_port))  # Conecta ao host remoto
 
