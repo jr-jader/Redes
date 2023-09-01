@@ -1,40 +1,41 @@
 import socket
 import threading
+from interface import Chat
 
-def receive_messages(client_socket, remote_user_name):
+def receive_messages(client_socket, chat_gui):
     while True:
         try:
-            message = client_socket.recv(1024).decode()  # Recebe mensagem do host remoto
+            message = client_socket.recv(1024).decode()
             if not message:
-                print(f"Conexão com {remote_user_name} perdida.")
+                print("Conexão perdida.")
                 break
-            print(f"{remote_user_name}: {message}")
+            chat_gui.insert_message(message)
         except:
-            print(f"Conexão com {remote_user_name} perdida.")
+            print("Conexão perdida.")
             break
+
+def send_message(client_socket, message):
+    client_socket.send(message.encode())
 
 def main():
-    user_name = input("Digite seu nome de usuário: ")  
-    remote_ip = input("Digite o IP do host: ")  
-    remote_port = int(input("Digite a porta do host: "))  
-    
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Cria socket IPv4 e TCP
-    client_socket.connect((remote_ip, remote_port))  # Conecta ao host remoto
+    user_name = input("Digite seu nome de usuário: ")
+    remote_ip = input("Digite o IP do host: ")
+    remote_port = int(input("Digite a porta do host: "))
 
-    client_socket.send(user_name.encode())  # Envia o nome de usuário para o host remoto
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect((remote_ip, remote_port))
 
-    remote_user_name = client_socket.recv(1024).decode()  # Recebe o nome de usuário do host remoto
+    client_socket.send(user_name.encode())
+    remote_user_name = client_socket.recv(1024).decode()
+
     print(f"Conectado com {remote_user_name}")
 
-    receive_thread = threading.Thread(target=receive_messages, args=(client_socket, remote_user_name))
-    receive_thread.start()  # Inicia thread para receber mensagens do host remoto
+    chat = Chat(user_name, lambda message: send_message(client_socket, message))
 
-    while True:
-        message = input()
-        if message.lower() == "sair":
-            client_socket.send(message.encode())  # Envia comando de saída para o host remoto
-            break
-        client_socket.send(message.encode())  # Envia mensagem para o host remoto
+    receive_thread = threading.Thread(target=receive_messages, args=(client_socket, chat))
+    receive_thread.start()
+
+    chat.start()
 
     client_socket.close()
 
