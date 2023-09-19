@@ -3,7 +3,7 @@ from fpdf import FPDF
 
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
-RECV_IP = '191.52.64.199'
+RECV_IP = '127.0.0.1'
 RECV_PORT = 3031
 
 PACKET_SIZE = 1500
@@ -40,10 +40,10 @@ class Receiver:
         self.sock.close()
 
     def receive_report(self):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # TCP
-        self.sock.bind((RECV_IP, RECV_PORT))
-        self.sock.listen(1)
-        sender_socket, sender_address = self.sock.accept()
+        tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # TCP
+        tcp_sock.bind((RECV_IP, RECV_PORT))
+        tcp_sock.listen(1)
+        sender_socket, sender_address = tcp_sock.accept()
         print('\nConnected to ', sender_address)
 
         r = sender_socket.recv(1024).decode()
@@ -59,7 +59,7 @@ class Receiver:
 
         print('Received report: ', report)
 
-        self.sock.close()
+        tcp_sock.close()
 
         pdf = FPDF()
         pdf.add_page()
