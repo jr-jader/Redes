@@ -45,10 +45,10 @@ class Sender:
         self.send_report(report_data, dest)
     
     def send_report(self, data, dest):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect(dest)
-        self.sock.send(data.encode())
-        self.sock.close()
+        tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        tcp_sock.connect(dest)
+        tcp_sock.send(data.encode())
+        tcp_sock.close()
         print('Done sending report')
 
 Adam = Sender()

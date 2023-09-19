@@ -3,10 +3,10 @@ from fpdf import FPDF
 
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
-RECV_IP = '127.0.0.1'
-RECV_PORT = 3030
+RECV_IP = '191.52.64.199'
+RECV_PORT = 3031
 
-PACKET_SIZE = 500
+PACKET_SIZE = 1500
 
 HEADER_SIZE = 2
 CHECKSUM_SIZE = 4
@@ -55,10 +55,23 @@ class Receiver:
         report[2] = 'Número de pacotes recebidos: ' + str(self.received_packets)
         report.append('Número de pacotes perdidos: ' + str(int(packets_sent) - self.received_packets))
         report.append('Taxa de transmissão: ' +  locale.format_string('%.3f', float(rate), grouping=True) + ' b/s')
+        report.append('Tamanho do(s) pacote(s) transmitido(s): ' + str(PACKET_SIZE))
 
         print('Received report: ', report)
 
         self.sock.close()
+
+        pdf = FPDF()
+        pdf.add_page()
+
+        pdf.set_font('Arial', 'B', 12)
+        pdf.cell(0, 10, 'TRAB-03-RELATÓRIO', 0, 1, 'C')
+        pdf.ln(10)
+
+        pdf.set_font('Arial', '', 12)
+        for i in range(len(report)):
+            pdf.cell(200, 10, txt='- ' + report[i], ln=i+1, align='L')
+        pdf.output('TRAB-03-RELATORIO')
 
 recv = Receiver()
 recv.receive_message()
