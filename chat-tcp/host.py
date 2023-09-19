@@ -18,7 +18,7 @@ def send_message(client_socket, message):
     client_socket.send(message.encode())
 
 def main():
-    listen_ip = "191.52.64.20"
+    listen_ip = "127.0.0.1"
     listen_port = 3031
 
     user_name = input("Digite seu nome de usuário: ")
