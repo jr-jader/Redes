@@ -3,10 +3,10 @@ from fpdf import FPDF
 
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
-RECV_IP = '127.0.0.1'
+RECV_IP = '189.90.68.23'
 RECV_PORT = 3031
 
-PACKET_SIZE = 1500
+PACKET_SIZE = 500
 
 HEADER_SIZE = 2
 CHECKSUM_SIZE = 4
