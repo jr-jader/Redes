@@ -1,103 +1,100 @@
-import socket, time, locale
+import socket
+import time
+import locale
+import threading
 
 locale.setlocale(locale.LC_ALL, '')
 
 PEER1_IP = '127.0.0.1'
 PEER2_IP = '127.0.0.1'
-PORT1 = 8000
-PORT2 = 8001
+PORT1 = 2023
+PORT2 = 2024
 
-STRING = "teste de rede *2023*" * 100
+STRING = 'teste de rede *2023*' * 100
 
 PACKET_SIZE = 500
 
-TIMER = 20
-TIMEOUT = 2  # Timeout for ACKs
+TIMER = 5
 
 class udp_upload:
+    def __init__(self):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sent_bytes = 0
+        self.sent_packets = 0
+
     def start_upload(self, data, dest):
         try:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.sock.settimeout(TIMEOUT)  # Set timeout for ACKs
-            print('Now connected to Upload on ', dest)
+            print('===UDP UPLOAD ROUTINE===\n')
+            print(f'Now connected to Upload on {dest}\n')
             start_time = time.time()
-            end_time = 0
-            packets_sent = 0
             while time.time() - start_time < TIMER:
-                packets_sent += self.upload(data, dest)
+                self.upload(data, dest)
                 end_time = time.time()
+            print(f"Total of bytes sent: {locale.format_string('%d', self.sent_bytes, grouping=True)} \nTotal of packets sent: {locale.format_string('%d', self.sent_packets, grouping=True)}")
             print(f'START TIME: {start_time} | END TIME: {end_time}')
-            print(f'Packets sent: {packets_sent}')
-            print(f'Bytes sent: {packets_sent * PACKET_SIZE}')
-            print(f'Speed: {packets_sent * PACKET_SIZE * 8 / (end_time - start_time)} bits per second')
-            print(f'Packet rate: {packets_sent / (end_time - start_time)} packets per second')
         except Exception as e:
             print(f"Error during upload: {e}")
+        finally:
+            self.sock.close()  # Close the socket after upload is complete
 
     def send_message(self, message, dest):
-        while True:
-            self.sock.sendto(message.encode('utf-8'), dest)
-            try:
-                data, addr = self.sock.recvfrom(1024)  # Wait for ACK
-                if data.decode('utf-8') == 'ACK':
-                    break  # Break the loop if ACK received
-            except socket.timeout:
-                continue  # Resend the packet if no ACK received within the timeout
+        self.sock.sendto(message.encode('utf-8'), dest)
+        self.sent_packets += 1
+        self.sent_bytes += len(message)
 
-    def upload(self, data, dest): #sender
+    def upload(self, data, dest):
         chunks = [data[i: i + PACKET_SIZE] for i in range(0, len(data), PACKET_SIZE)]
         for chunk in chunks:
             self.send_message(chunk, dest)
-        return len(chunks)
-        
-class udp_download: 
+            time.sleep(0.01)  # Add a small delay to avoid packet loss
+
+class udp_download:
     def __init__(self, dest):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind(dest)
         self.received_bytes = 0
         self.received_packets = 0
-    
-    def start_download(self, dest):
+
+    def start_download(self):
         try:
-            print('Now connected to Download from ', dest)
+            print('===UDP DOWNLOAD ROUTINE===\n')
+            print(f'Now connected to Download on {self.sock.getsockname()}\n')
             start_time = time.time()
             while time.time() - start_time < TIMER + 1:
                 self.download()
-            print(f'Total of bytes: {locale.format_string("%d", self.received_bytes, grouping=True)}')
-            print(f'Total of packets: {locale.format_string("%d", self.received_packets, grouping=True)}')
+            end_time = time.time()
+            print(f"Total of bytes received: {locale.format_string('%d', self.received_bytes, grouping=True)} \nTotal of packets received: {locale.format_string('%d', self.received_packets, grouping=True)}")
+            print(f'START TIME: {start_time} | END TIME: {end_time}')
         except Exception as e:
             print(f"Error during download: {e}")
+        finally:
+            self.sock.close()  # Close the socket after download is complete
 
-    def download(self): #receiver
-        data = ''
-        while(True):
-            chunk, addr = self.sock.recvfrom(PACKET_SIZE)  # Receive data from the connection
-            chunk = chunk.decode('utf-8')
-            data += ''.join(chunk)
-            self.received_packets += 1
-            self.sock.sendto('ACK'.encode('utf-8'), addr)  # Send ACK
-            if len(chunk) < PACKET_SIZE:
-                break
-        self.received_bytes = self.received_packets * PACKET_SIZE
+    def download(self):
+        data, _ = self.sock.recvfrom(PACKET_SIZE)
+        self.received_packets += 1
+        self.received_bytes += len(data)
 
 def main():
     routine = input("Please select your routine\n0 - upload | 1 - download\nYour choice: ")
-    while routine != '0' and routine != '1':
+    while not routine.isdigit() or routine not in ['0', '1']:
         routine = input("ERROR: invalid routine. Please select your routine\n0 - upload | 1 - download\nYour choice: ")
+
     if routine == '0':
-        print('\n===UDP UPLOAD ROUTINE===\n')
-        obj = udp_upload()
-        obj.start_upload(STRING, (PEER1_IP, PORT1))
-        print('\n===UDP DOWNLOAD ROUTINE AFTER UPLOAD===\n')
-        obj = udp_download((PEER2_IP, PORT2))
-        obj.start_download((PEER2_IP, PORT2))
+        dest = (PEER1_IP, PORT1)
+        upload_obj = udp_upload()
+        upload_obj.start_upload(STRING, dest)
+        upload_obj.sock.close()
+
     else:
-        print('\n===UDP DOWNLOAD ROUTINE===\n')
-        obj = udp_download((PEER1_IP, PORT1))
-        obj.start_download((PEER1_IP, PORT1))
-        print('\n===UDP UPLOAD ROUTINE AFTER DOWNLOAD===\n')
-        obj = udp_upload()
-        obj.start_upload(STRING, (PEER2_IP, PORT2))
+        dest = (PEER1_IP, PORT1)
+        download_obj = udp_download(dest)
+        download_thread = threading.Thread(target=download_obj.start_download)
+        download_thread.start()
+        download_thread.join()
+        download_obj.sock.close()
 
 if __name__ == "__main__":
     main()
