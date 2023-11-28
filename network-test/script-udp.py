@@ -7,8 +7,8 @@ locale.setlocale(locale.LC_ALL, '')
 
 PEER1_IP = '127.0.0.1'
 PEER2_IP = '127.0.0.1'
-PORT1 = 2023
-PORT2 = 2024
+PORT1 = 8000
+PORT2 = 8001
 
 STRING = 'teste de rede *2023*' * 100
 
@@ -49,7 +49,6 @@ class UDPUpload:
         chunks = [data[i: i + PACKET_SIZE] for i in range(0, len(data), PACKET_SIZE)]
         for chunk in chunks:
             self.send_message(chunk, dest)
-            time.sleep(0.001)
 
 class UDPDownload:
     def __init__(self, dest):
