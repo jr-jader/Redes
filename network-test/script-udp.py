@@ -1,6 +1,7 @@
 import socket
 import time
 import locale
+import metrics
 
 locale.setlocale(locale.LC_ALL, '')
 
@@ -13,7 +14,7 @@ STRING = 'teste de rede *2023*' * 100
 
 PACKET_SIZE = 500
 
-TIMER = 5  # Adjusted the timer
+TIMER = 20  # Adjusted the timer
 
 class UDPUpload:
     def __init__(self):
@@ -90,7 +91,9 @@ def main():
         print('=== ROTINA DE UPLOAD UDP ===\n')
         upload_obj = UDPUpload()
         start_time_upload, end_time_upload = upload_obj.start_upload(STRING, (PEER1_IP, PORT1))
-        print(f"Total de bytes enviados: {locale.format_string('%d', upload_obj.sent_bytes, grouping=True)} \nTotal de pacotes enviados: {locale.format_string('%d', upload_obj.sent_packets, grouping=True)}")
+
+        nbits, prefix = metrics.calculate_rate(upload_obj.sent_bytes, TIMER)
+        print(f"Total de bytes enviados: {locale.format_string('%d', upload_obj.sent_bytes, grouping=True)} \nTotal de pacotes enviados: {locale.format_string('%d', upload_obj.sent_packets, grouping=True)}\nTaxa de transmissão: {locale.format_string('%.3f', nbits, grouping=True)}{prefix}bits/s | {locale.format_string('%d', upload_obj.sent_packets / TIMER, grouping=True)} pacotes/s")
         print(f'START TIME: {start_time_upload} | END TIME: {end_time_upload}')
 
 
@@ -112,8 +115,10 @@ def main():
         print('\n=== ROTINA DE UPLOAD UDP APÓS O DOWNLOAD ===\n')
         upload_obj = UDPUpload()
         start_time_upload, end_time_upload = upload_obj.start_upload(STRING, (PEER2_IP, PORT2))
-        print(f"Total de bytes enviados: {locale.format_string('%d', upload_obj.sent_bytes, grouping=True)} \nTotal de pacotes enviados: {locale.format_string('%d', upload_obj.sent_packets, grouping=True)}")
-        print(f'START TIME: {start_time_upload} | END TIME: {end_time_upload}')
+
+        nbits, prefix = metrics.calculate_rate(upload_obj.sent_bytes, TIMER)
+        print(f"Total de bytes enviados: {locale.format_string('%d', upload_obj.sent_bytes, grouping=True)} \nTotal de pacotes enviados: {locale.format_string('%d', upload_obj.sent_packets, grouping=True)}\nTaxa de transmissão: {locale.format_string('%.3f', nbits, grouping=True)}{prefix}bits/s | {locale.format_string('%d', upload_obj.sent_packets / TIMER, grouping=True)} pacotes/s")
+        print(f'START TIME: {start_time_download} | END TIME: {end_time_download}')
 
 if __name__ == "__main__":
     main()

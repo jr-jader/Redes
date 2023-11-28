@@ -1,4 +1,5 @@
 import socket, time, locale
+import metrics
 
 locale.setlocale(locale.LC_ALL, '')
 
@@ -11,7 +12,7 @@ STRING = 'teste de rede *2023*' * 100
 
 PACKET_SIZE = 500
 
-TIMER = 5
+TIMER = 20
 
 class tcp_upload:
     def start_upload(self, data, dest):
@@ -75,17 +76,23 @@ def main():
         obj = tcp_upload()
         obj.start_upload(STRING, (PEER1_IP, PORT1))
         obj.sock.close()
+        
         print('\n===TCP DOWNLOAD ROUTINE AFTER UPLOAD===\n')
         obj = tcp_download((PEER2_IP, PORT2))
         obj.start_download((PEER2_IP, PORT2))
         obj.sock.close()
-        print(f"Total of bytes: {locale.format_string('%d', obj.received_bytes, grouping=True)}\nTotal of packets: {locale.format_string('%d', obj.received_packets, grouping=True)}")
+
+        nbits, prefix = metrics.calculate_rate(obj.received_bytes, TIMER)
+        print(f"Total of bytes: {locale.format_string('%d', obj.received_bytes, grouping=True)}\nTotal of packets: {locale.format_string('%d', obj.received_packets, grouping=True)}\nTransmission rate: {locale.format_string('%.3f', nbits, grouping=True)}{prefix}bits/s | {locale.format_string('%d', obj.received_packets / TIMER, grouping=True)} packets/s")
     else:
         print('\n===TCP DOWNLOAD ROUTINE===\n')
         obj = tcp_download((PEER1_IP, PORT1))
         obj.start_download((PEER1_IP, PORT1))
         obj.sock.close()  # Close the connection when done
-        print(f"Total of bytes: {locale.format_string('%d', obj.received_bytes, grouping=True)}\nTotal of packets: {locale.format_string('%d', obj.received_packets, grouping=True)}")
+
+        nbits, prefix = metrics.calculate_rate(obj.received_bytes, TIMER)
+        print(f"Total of bytes: {locale.format_string('%d', obj.received_bytes, grouping=True)}\nTotal of packets: {locale.format_string('%d', obj.received_packets, grouping=True)}\nTransmission rate: {locale.format_string('%.3f', nbits, grouping=True)}{prefix}bits/s | {locale.format_string('%d', obj.received_packets / TIMER, grouping=True)} packets/s")
+        
         print('\n===TCP UPLOAD ROUTINE AFTER DOWNLOAD===\n')
         obj = tcp_upload()
         obj.start_upload(STRING, (PEER2_IP, PORT2))
