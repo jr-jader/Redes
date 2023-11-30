@@ -7,8 +7,8 @@ locale.setlocale(locale.LC_ALL, '')
 
 PEER1_IP = '127.0.0.1'
 PEER2_IP = '127.0.0.1'
-PORT1 = 8000
-PORT2 = 8001
+PORT1 = 8080
+PORT2 = 8081
 
 STRING = 'teste de rede *2023*' * 100
 

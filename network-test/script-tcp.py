@@ -5,8 +5,8 @@ locale.setlocale(locale.LC_ALL, '')
 
 PEER1_IP = '127.0.0.1'
 PEER2_IP = '127.0.0.1'
-PORT1 = 8000
-PORT2 = 8001
+PORT1 = 8080
+PORT2 = 8081
 
 STRING = 'teste de rede *2023*' * 100
 
@@ -102,7 +102,7 @@ def main():
 
         nbits, prefix = metrics.calculate_rate(obj.received_bytes, TIMER)
         print(f"Total of bytes: {locale.format_string('%d', obj.received_bytes, grouping=True)}\nTotal of packets: {locale.format_string('%d', obj.received_packets, grouping=True)}\nTransmission rate: {locale.format_string('%.3f', nbits, grouping=True)}{prefix}bits/s | {locale.format_string('%d', obj.received_packets / TIMER, grouping=True)} packets/s")
-        
+
         print('\n===TCP UPLOAD ROUTINE AFTER DOWNLOAD===\n')
         obj = tcp_upload()
         obj.start_upload(STRING, (PEER2_IP, PORT2))
